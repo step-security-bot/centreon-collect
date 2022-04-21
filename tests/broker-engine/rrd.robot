@@ -33,6 +33,7 @@ BRRDDM1
 	${result}=	Check Connections
 	Should Be True	${result}	msg=Engine and Broker not connected
 
+	Sleep	5s
 	# We choose 3 metrics to remove.
 	${metrics}=	Get Metrics To Delete	3
 	Log To Console	Metrics to delete ${metrics}
