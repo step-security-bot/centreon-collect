@@ -5,6 +5,7 @@ Suite Teardown	Clean After Suite
 Test Setup	Stop Processes
 
 Documentation	Centreon Broker and Engine add Hostgroup
+Library	DatabaseLibrary
 Library	Process
 Library	OperatingSystem
 Library	DateTime
@@ -173,6 +174,117 @@ EBNHGU3
 	${log}=	Catenate	SEPARATOR=	${BROKER_LOG}	/central-broker-master.log
 	${result}=	Find In Log With Timeout	${log}	${start}	${content}	60
 	Should Be True	${result}	msg=One of the new host groups not found in logs.
+
+	Stop Engine
+	Stop Broker
+
+EBNHGU4
+	[Documentation]	New host group with several pollers and connections to DB with broker and rename this hostgroup
+	[Tags]	Broker	Engine	New host group
+	Config Engine	${3}
+	Config Broker	rrd
+	Config Broker	central
+	Config Broker	module
+
+	Broker Config Log	central	sql	info
+	Broker Config Output Set	central	central-broker-master-sql	connections_count	5
+	Broker Config Output Set	central	central-broker-master-perfdata	connections_count	5
+	${start}=	Get Current Date
+	Start Broker
+	Start Engine
+	${result}=	Check Connections
+	Should Be True	${result}	msg=Engine and Broker not connected
+	Add Host Group	${0}	${1}	["host_1", "host_2", "host_3"]
+
+	Reload Broker
+	Reload Engine
+
+	${result}=	Check Connections
+	Should Be True	${result}	msg=Engine and Broker not connected
+
+	${content}=	Create List	enabling membership of host 3 to host group 1 on instance 1	enabling membership of host 2 to host group 1 on instance 1	enabling membership of host 1 to host group 1 on instance 1
+
+	${log}=	Catenate	SEPARATOR=	${BROKER_LOG}	/central-broker-master.log
+	${result}=	Find In Log With Timeout	${log}	${start}	${content}	45
+	Should Be True	${result}	msg=One of the new host groups not found in logs.
+
+	Rename Host Group	${0}	${1}	test	["host_1", "host_2", "host_3"]
+
+	Sleep	10s
+	${start}=	Get Current Date
+	Reload Broker
+	Reload Engine
+
+	${result}=	Check Connections
+	Should Be True	${result}	msg=Engine and Broker not connected
+
+	Connect To Database	pymysql	${DBName}	${DBUser}	${DBPass}	${DBHost}	${DBPort}
+	Log To Console	after connection
+	FOR    ${index}    IN RANGE    60
+	 Log To Console	select name from hostgroups where hostgroup_id =${1}
+	 ${output}=	Query	select name from hostgroups where hostgroup_id =${1}
+	 Log To Console	${output}
+		Sleep	1s
+		EXIT FOR LOOP IF	"${output}" == "(('hostgroup_test',),)"
+	END
+	Should Be Equal As Strings	${output}	(('hostgroup_test',),)
+
+	Stop Engine
+	Stop Broker
+
+EBNHGU5
+	[Documentation]	New host group with several pollers and connections to DB with broker configured with unified_sql and rename this hostgroup
+	[Tags]	Broker	Engine	New host group	unified_sql
+	Config Engine	${3}
+	Config Broker	rrd
+	Config Broker	central
+	Config Broker	module
+
+	Broker Config Log	central	sql	info
+	Config Broker Sql Output	central	unified_sql
+	Broker Config Output Set	central	central-broker-unified-sql	connections_count	5
+	Broker Config Add Item	module	bbdo_version	3.0.0
+	Broker Config Add Item	central	bbdo_version	3.0.0
+	Broker Config Add Item	rrd	bbdo_version	3.0.0
+	${start}=	Get Current Date
+	Start Broker
+	Start Engine
+	${result}=	Check Connections
+	Should Be True	${result}	msg=Engine and Broker not connected
+	Add Host Group	${0}	${1}	["host_1", "host_2", "host_3"]
+
+	Reload Broker
+	Reload Engine
+
+	${result}=	Check Connections
+	Should Be True	${result}	msg=Engine and Broker not connected
+
+	${content}=	Create List	enabling membership of host 3 to host group 1 on instance 1	enabling membership of host 2 to host group 1 on instance 1	enabling membership of host 1 to host group 1 on instance 1
+
+	${log}=	Catenate	SEPARATOR=	${BROKER_LOG}	/central-broker-master.log
+	${result}=	Find In Log With Timeout	${log}	${start}	${content}	45
+	Should Be True	${result}	msg=One of the new host groups not found in logs.
+
+	Rename Host Group	${0}	${1}	test	["host_1", "host_2", "host_3"]
+
+	Sleep	10s
+	${start}=	Get Current Date
+	Reload Broker
+	Reload Engine
+
+	${result}=	Check Connections
+	Should Be True	${result}	msg=Engine and Broker not connected
+
+	Connect To Database	pymysql	${DBName}	${DBUser}	${DBPass}	${DBHost}	${DBPort}
+	Log To Console	after connection
+	FOR    ${index}    IN RANGE    60
+	 Log To Console	select name from hostgroups where hostgroup_id =${1}
+	 ${output}=	Query	select name from hostgroups where hostgroup_id =${1}
+	 Log To Console	${output}
+		Sleep	1s
+		EXIT FOR LOOP IF	"${output}" == "(('hostgroup_test',),)"
+	END
+	Should Be Equal As Strings	${output}	(('hostgroup_test',),)
 
 	Stop Engine
 	Stop Broker
