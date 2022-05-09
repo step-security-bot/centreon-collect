@@ -19,11 +19,6 @@
 #include <fmt/format.h>
 #include <gtest/gtest.h>
 
-#include <cstdio>
-#include <fstream>
-#include <list>
-#include <memory>
-
 #include "../../core/test/test_server.hh"
 #include "bbdo/storage/status.hh"
 #include "com/centreon/broker/config/applier/init.hh"
@@ -3710,14 +3705,15 @@ TEST_F(LuaTest, BrokerPbHostJsonEncode) {
 TEST_F(LuaTest, BrokerBbdoVersion) {
   std::map<std::string, misc::variant> conf;
   std::string filename("/tmp/cache_test.lua");
-  CreateScript(filename,
-               "function init(conf)\n"
-               "  broker_log:set_parameters(3, '/tmp/event_log')\n"
-               "  broker_log:info(0, 'BBDO version: ' .. broker.bbdo_version())\n"
-               "end\n"
-               "function write(d)\n"
-               "  return true\n"
-               "end");
+  CreateScript(
+      filename,
+      "function init(conf)\n"
+      "  broker_log:set_parameters(3, '/tmp/event_log')\n"
+      "  broker_log:info(0, 'BBDO version: ' .. broker.bbdo_version())\n"
+      "end\n"
+      "function write(d)\n"
+      "  return true\n"
+      "end");
   auto binding{std::make_unique<luabinding>(filename, conf, *_cache)};
   std::string lst(ReadFile("/tmp/event_log"));
   ASSERT_NE(lst.find("BBDO version: 2.0.0"), std::string::npos);
