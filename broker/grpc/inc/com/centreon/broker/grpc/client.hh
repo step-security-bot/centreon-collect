@@ -35,7 +35,8 @@ class client : public channel,
                    ::com::centreon::broker::stream::centreon_event> {
   channel_ptr _channel;
   std::unique_ptr<com::centreon::broker::stream::centreon_bbdo::Stub> _stub;
-  std::unique_ptr<::grpc::ClientContext> _context;
+  ::grpc::ClientContext _context;
+  ::grpc::CompletionQueue _cq;
 
  protected:
   client& operator=(const client&) = delete;

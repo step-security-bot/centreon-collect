@@ -74,11 +74,12 @@ client::client(const grpc_config::pointer& conf) : channel("client", conf) {
   _channel = ::grpc::CreateCustomChannel(conf->get_hostport(), creds, args);
   _stub = std::unique_ptr<com::centreon::broker::stream::centreon_bbdo::Stub>(
       com::centreon::broker::stream::centreon_bbdo::NewStub(_channel));
-  _context = std::make_unique<::grpc::ClientContext>();
+  
   if (!_conf->get_authorization().empty()) {
-    _context->AddMetadata(authorization_header, _conf->get_authorization());
+    _context.AddMetadata(authorization_header, _conf->get_authorization());
   }
-  _stub->async()->exchange(_context.get(), this);
+  _stub->Asyncexchange(&_context, &_cq, this);
+  //_stub->async()->exchange(&_context, this);
 }
 
 client::pointer client::create(const grpc_config::pointer& conf) {
@@ -88,9 +89,7 @@ client::pointer client::create(const grpc_config::pointer& conf) {
 }
 
 client::~client() {
-  _stub.reset();
-  _context.reset();
-  _channel.reset();
+  _cq.Shutdown();
 }
 
 void client::start_read(event_ptr& to_read, bool first_read) {
