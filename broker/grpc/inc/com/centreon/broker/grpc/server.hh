@@ -60,6 +60,7 @@ class accepted_service
 
 class server : public centreon_stream::centreon_bbdo::Service,
                public std::enable_shared_from_this<server> {
+  std::unique_ptr<::grpc::ServerCompletionQueue> _cq;
   std::unique_ptr<::grpc::Server> _server;
   std::queue<accepted_service::pointer> _accepted;
   grpc_config::pointer _conf;
@@ -74,11 +75,10 @@ class server : public centreon_stream::centreon_bbdo::Service,
   void start();
 
  public:
+  ~server() noexcept;
   using pointer = std::shared_ptr<server>;
 
   static pointer create(const grpc_config::pointer& conf);
-
-  ~server() = default;
 
   bool is_ready() const;
 

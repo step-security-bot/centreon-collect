@@ -76,6 +76,12 @@ void accepted_service::OnWriteDone(bool ok) {
  ****************************************************************************/
 server::server(const grpc_config::pointer& conf) : _conf(conf) {}
 
+server::~server() noexcept {
+  log_v2::grpc()->debug("grpc: server destruction");
+  _server->Shutdown();
+  _cq->Shutdown();
+}
+
 void server::start() {
   ::grpc::Service::MarkMethodCallback(
       0, new ::grpc::internal::CallbackBidiHandler<
@@ -130,6 +136,7 @@ void server::start() {
   builder.AddChannelArgument(GRPC_ARG_HTTP2_MAX_PINGS_WITHOUT_DATA, 0);
   builder.AddChannelArgument(
       GRPC_ARG_HTTP2_MIN_RECV_PING_INTERVAL_WITHOUT_DATA_MS, 60000);
+  _cq = builder.AddCompletionQueue();
   _server = std::unique_ptr<::grpc::Server>(builder.BuildAndStart());
 }
 
