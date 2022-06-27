@@ -2310,7 +2310,7 @@ BEEXTCMD_REVERSE_GRPC4
 		Kindly Stop Broker
 	END
 	
-BEATOI11
+BEATOI1
 	[Documentation]	external command SEND_CUSTOM_HOST_NOTIFICATION with option_number=1 should work
 	[Tags]	Broker	Engine	host	extcmd	Notification
 	Config Engine	${1}	${50}	${20}
@@ -2329,7 +2329,7 @@ BEATOI11
 	Stop Engine
 	Kindly Stop Broker
 
-BEATOI12
+BEATOI2
 	[Documentation]	external command SEND_CUSTOM_HOST_NOTIFICATION with option_number>7 should fail
 	[Tags]	Broker	Engine	host	extcmd	Notification
 	Config Engine	${1}	${50}	${20}
@@ -2348,7 +2348,7 @@ BEATOI12
 	Stop Engine
 	Kindly Stop Broker
 
-BEATOI13
+BEATOI3
 	[Documentation]	external command SEND_CUSTOM_HOST_NOTIFICATION with option_number=toto should fail
 	[Tags]	Broker	Engine	host	extcmd	Notification
 	Config Engine	${1}	${50}	${20}
