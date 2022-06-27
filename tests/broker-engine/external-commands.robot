@@ -2309,3 +2309,60 @@ BEEXTCMD_REVERSE_GRPC4
 		Stop Engine
 		Kindly Stop Broker
 	END
+	
+BEATOI11
+	[Documentation]	external command SEND_CUSTOM_HOST_NOTIFICATION with option_number=1 should work
+	[Tags]	Broker	Engine	host	extcmd	Notification
+	Config Engine	${1}	${50}	${20}
+	Config Broker	rrd
+	Config Broker	central
+	Config Broker	module	${1}
+	Broker Config Log	central	core	error
+	Broker Config Log	central	sql	debug
+	${start}=	Get Current Date
+	Start Broker
+	Start Engine
+	SEND CUSTOM HOST NOTIFICATION	host_1	1	admin	foobar
+	${content}=	Create List	EXTERNAL COMMAND: SEND_CUSTOM_HOST_NOTIFICATION;host_1;1;admin;foobar
+	${result}=	Find In Log with Timeout	${logEngine0}	${start}	${content}	60
+	Should Be True	${result}	msg=command argument notification_option must be an integer between 0 and 7.
+	Stop Engine
+	Kindly Stop Broker
+
+BEATOI12
+	[Documentation]	external command SEND_CUSTOM_HOST_NOTIFICATION with option_number>7 should fail
+	[Tags]	Broker	Engine	host	extcmd	Notification
+	Config Engine	${1}	${50}	${20}
+	Config Broker	rrd
+	Config Broker	central
+	Config Broker	module	${1}
+	Broker Config Log	central	core	error
+	Broker Config Log	central	sql	debug
+	${start}=	Get Current Date
+	Start Broker
+	Start Engine
+	SEND CUSTOM HOST NOTIFICATION	host_1	8	admin	foobar
+	${content}=	Create List	Error: could not send custom host notification: Command argument '8' must be an integer between 0 and 7
+	${result}=	Find In Log with Timeout	${logEngine0}	${start}	${content}	60
+	Should Be True	${result}	msg=command argument notification_option must be an integer between 0 and 7.
+	Stop Engine
+	Kindly Stop Broker
+
+BEATOI13
+	[Documentation]	external command SEND_CUSTOM_HOST_NOTIFICATION with option_number=toto should fail
+	[Tags]	Broker	Engine	host	extcmd	Notification
+	Config Engine	${1}	${50}	${20}
+	Config Broker	rrd
+	Config Broker	central
+	Config Broker	module	${1}
+	Broker Config Log	central	core	error
+	Broker Config Log	central	sql	debug
+	${start}=	Get Current Date
+	Start Broker
+	Start Engine
+	SEND CUSTOM HOST NOTIFICATION	host_1	toto	admin	foobar
+	${content}=	Create List	Error: could not send custom host notification: Command argument 'toto' must be an integer between 0 and 7
+	${result}=	Find In Log with Timeout	${logEngine0}	${start}	${content}	60
+	Should Be True	${result}	msg=command argument notification_option must be an integer between 0 and 7.
+	Stop Engine
+	Kindly Stop Broker
