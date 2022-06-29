@@ -2310,7 +2310,7 @@ BEEXTCMD_REVERSE_GRPC4
 		Kindly Stop Broker
 	END
 	
-BEATOI1
+BEATOI11
 	[Documentation]	external command SEND_CUSTOM_HOST_NOTIFICATION with option_number=1 should work
 	[Tags]	Broker	Engine	host	extcmd	Notification
 	Config Engine	${1}	${50}	${20}
@@ -2329,7 +2329,7 @@ BEATOI1
 	Stop Engine
 	Kindly Stop Broker
 
-BEATOI2
+BEATOI12
 	[Documentation]	external command SEND_CUSTOM_HOST_NOTIFICATION with option_number>7 should fail
 	[Tags]	Broker	Engine	host	extcmd	Notification
 	Config Engine	${1}	${50}	${20}
@@ -2348,7 +2348,7 @@ BEATOI2
 	Stop Engine
 	Kindly Stop Broker
 
-BEATOI3
+BEATOI13
 	[Documentation]	external command SEND_CUSTOM_HOST_NOTIFICATION with option_number=toto should fail
 	[Tags]	Broker	Engine	host	extcmd	Notification
 	Config Engine	${1}	${50}	${20}
@@ -2364,5 +2364,47 @@ BEATOI3
 	${content}=	Create List	Error: could not send custom host notification: Command argument 'toto' must be an integer between 0 and 7
 	${result}=	Find In Log with Timeout	${logEngine0}	${start}	${content}	60
 	Should Be True	${result}	msg=command argument notification_option must be an integer between 0 and 7.
+	Stop Engine
+	Kindly Stop Broker
+
+BEATOI21
+	[Documentation]	external command ADD_HOST_COMMENT with persistent=1 should work
+	[Tags]	Broker	Engine	host	extcmd	Notification
+	Config Engine	${1}	${50}	${20}
+	Config Broker	rrd
+	Config Broker	central
+	Config Broker	module	${1}
+	Broker Config Log	central	core	error
+	Broker Config Log	central	sql	debug
+	${start}=	Get Current Date
+	Start Broker
+	Start Engine
+	${date}=	Get Current Date	result_format=epoch
+	Log To Console	${date}
+	ADD HOST COMMENT	host_1	1	user	comment
+	${content}=	Create List	ADD_HOST_COMMENT finished
+	${result}=	Find In Log with Timeout	${logEngine0}	${start}	${content}	60
+	Should Be True	${result}	msg=command argument persistent_flag must be 0 or 1.
+	Stop Engine
+	Kindly Stop Broker
+
+BEATOI22
+	[Documentation]	external command ADD_HOST_COMMENT with persistent=4 should not work
+	[Tags]	Broker	Engine	host	extcmd	Notification
+	Config Engine	${1}	${50}	${20}
+	Config Broker	rrd
+	Config Broker	central
+	Config Broker	module	${1}
+	Broker Config Log	central	core	error
+	Broker Config Log	central	sql	debug
+	${start}=	Get Current Date
+	Start Broker
+	Start Engine
+	${date}=	Get Current Date	result_format=epoch
+	Log To Console	${date}
+	ADD HOST COMMENT	host_1	4	user	comment
+	${content}=	Create List	Error: could not ADD_HOST_COMMENT
+	${result}=	Find In Log with Timeout	${logEngine0}	${start}	${content}	60
+	Should Be True	${result}	msg=command argument persistent_flag must be 0 or 1.
 	Stop Engine
 	Kindly Stop Broker
