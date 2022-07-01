@@ -2389,7 +2389,7 @@ BEATOI21
 	Kindly Stop Broker
 
 BEATOI22
-	[Documentation]	external command ADD_HOST_COMMENT with persistent=4 should not work
+	[Documentation]	external command ADD_HOST_COMMENT with persistent=4 should fail
 	[Tags]	Broker	Engine	host	extcmd	Notification
 	Config Engine	${1}	${50}	${20}
 	Config Broker	rrd
