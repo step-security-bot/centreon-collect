@@ -2408,3 +2408,24 @@ BEATOI22
 	Should Be True	${result}	msg=command argument persistent_flag must be 0 or 1.
 	Stop Engine
 	Kindly Stop Broker
+
+BEATOI23
+	[Documentation]	external command ADD_SVC_COMMENT with persistent=0 should work
+	[Tags]	Broker	Engine	host	extcmd	Notification
+	Config Engine	${1}	${50}	${20}
+	Config Broker	rrd
+	Config Broker	central
+	Config Broker	module	${1}
+	Broker Config Log	central	core	error
+	Broker Config Log	central	sql	debug
+	${start}=	Get Current Date
+	Start Broker
+	Start Engine
+	${date}=	Get Current Date	result_format=epoch
+	Log To Console	${date}
+	ADD SVC COMMENT	host_1	service_1	0	user	comment
+	${content}=	Create List	ADD_SVC_COMMENT finished
+	${result}=	Find In Log with Timeout	${logEngine0}	${start}	${content}	60
+	Should Be True	${result}	msg=command argument persistent_flag must be 0 or 1.
+	Stop Engine
+	Kindly Stop Broker
