@@ -1,0 +1,24 @@
+ARG REGISTRY_URL
+ARG VERSION
+
+FROM ${REGISTRY_URL}/centreon-web-alma9:develop
+ARG VERSION
+
+RUN mkdir /tmp/rpms-centreon-lm
+COPY *.rpm /tmp/rpms-centreon-lm/
+
+COPY --chmod=755 ./.github/scripts/install-centreon-module.php /tmp/install-centreon-module.php
+
+RUN bash -e <<EOF
+
+rm -rf /var/cache/centreon/symfony/*
+su - apache -s /bin/bash -c "/usr/share/centreon/bin/console cache:clear"
+
+dnf install -y /tmp/rpms-centreon-lm/*.rpm
+dnf clean all
+
+service mysql start
+su -c "/tmp/install-centreon-module.php -b /usr/share/centreon/bootstrap.php -m centreon-license-manager" -s /bin/bash apache
+service mysql stop
+
+EOF

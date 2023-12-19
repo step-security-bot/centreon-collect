@@ -1,0 +1,62 @@
+ARG REGISTRY_URL
+ARG VERSION
+
+FROM ${REGISTRY_URL}/centreon-web-alma9:develop
+ARG VERSION
+
+EXPOSE 22 5758 8080 8081
+
+RUN mkdir /tmp/rpms-centreon-map
+COPY *.rpm /tmp/rpms-centreon-map/
+
+# Copy map-engine script.
+COPY --chmod=755 .github/scripts/install/install-map-engine.sh /tmp/install.sh
+
+# Copy license files.
+COPY --chown=apache:apache .github/scripts/license/bam.license /etc/centreon/license.d/bam.license
+COPY --chown=apache:apache .github/scripts/license/map.license /etc/centreon/license.d/map.license
+
+# Copy web script.
+COPY --chmod=755 ./.github/scripts/install-centreon-module.php /tmp/install-centreon-module.php
+COPY --chmod=755 .github/scripts/install/install-web.sh /tmp/install-web.sh
+
+# Copy main script.
+COPY --chmod=755 .github/scripts/install/run.sh /usr/share/centreon/container.d/90-map.sh
+
+RUN bash -e <<EOF
+
+dnf config-manager --add-repo https://centreon.jfrog.io/artifactory/rpm-business/1a97ff9985262bf3daf7a0919f9c59a6/${VERSION}/el9/centreon-business-${VERSION}.repo
+
+# Install server.
+dnf install -y /tmp/rpms-centreon-map/*.rpm
+dnf clean all
+
+# Install engine script.
+/tmp/install.sh
+
+# Replace properties default values.
+sed -i 's/CENTREON_PWD\=\"centreon\"/CENTREON_PWD="Centreon!2021"/g' /etc/centreon-map/vars.sh
+sed -i 's/CENTREON_ADDRESS\=\"\"/CENTREON_ADDRESS="localhost"/g' /etc/centreon-map/vars.sh
+sed -i 's/CENTREON_DB_ADDRESS\=\"\"/CENTREON_DB_ADDRESS="localhost"/g' /etc/centreon-map/vars.sh
+sed -i 's/CENTREON_BROKER_ADDRESS\=\"\"/CENTREON_BROKER_ADDRESS="localhost"/g' /etc/centreon-map/vars.sh
+
+/etc/centreon-map/configure.sh -a
+
+# Change log level from  ERROR to DEBUG
+sed -i 's/\"org.springframework\" level\=\"ERROR\"/"org.springframework" level="DEBUG"/g' /etc/centreon-map/map-log.xml
+sed -i 's/\"org.springframework.web\" level\=\"ERROR\"/"org.springframework.web" level="DEBUG"/g' /etc/centreon-map/map-log.xml
+sed -i 's/\"org.apache\" level\=\"ERROR\"/"org.apache" level="DEBUG"/g' /etc/centreon-map/map-log.xml
+sed -i 's/\"org.hibernate\" level\=\"ERROR\"/"org.hibernate" level="DEBUG"/g' /etc/centreon-map/map-log.xml
+sed -i 's/\"liquibase\" level\=\"ERROR\"/"liquibase" level="DEBUG"/g' /etc/centreon-map/map-log.xml
+
+# Removed install of bam and lm to avoid breaking map dockerize
+# dnf install -y centreon-bam-server centreon-license-manager
+dnf clean all
+
+# Install web script.
+/tmp/install-web.sh
+
+# Main script.
+rm -f /usr/share/centreon/container.d/80-logs.sh
+
+EOF

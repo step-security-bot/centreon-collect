@@ -1,0 +1,30 @@
+ARG REGISTRY_URL
+
+FROM ${REGISTRY_URL}/almalinux:8
+
+RUN bash -e <<EOF
+
+# Base dnf configuration.
+echo 'http_caching=none' >> /etc/yum.conf
+echo 'assumeyes=1' >> /etc/yum.conf
+sed -i 's/best=True/best=False/g' /etc/dnf/dnf.conf
+
+dnf install -y dnf-plugins-core
+dnf config-manager --set-enabled powertools
+
+dnf install -y epel-release
+
+echo '[goreleaser]
+name=GoReleaser
+baseurl=https://repo.goreleaser.com/yum/
+enabled=1
+gpgcheck=0' | tee /etc/yum.repos.d/goreleaser.repo
+
+dnf install -y \
+    git \
+    make \
+    nfpm \
+    sudo \
+    zstd
+
+EOF

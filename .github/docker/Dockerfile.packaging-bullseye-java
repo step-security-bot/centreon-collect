@@ -1,0 +1,40 @@
+ARG REGISTRY_URL
+
+FROM ${REGISTRY_URL}/debian:bullseye
+RUN apt-get -y update && \
+    apt-get -y install aptitude \
+    cmake\
+    curl \
+    debmake \
+    devscripts \
+    dh-make \
+    fakeroot \
+    g++ \
+    gcc \
+    gettext \
+    git \
+    git-buildpackage \
+    libgcrypt20-dev \
+    libgnutls28-dev \
+    liblua5.3-dev \
+    libmariadb3 \
+    libperl-dev \
+    librrd-dev \
+    lintian \
+    locales \
+    maven \
+    ninja-build \
+    ninja-build \
+    openjdk-17-jre \
+    pbuilder \
+    php \
+    pkg-config \
+    python3 \
+    python3-pip \
+    quilt \
+    tar \
+    wget && \
+    rm -rf /var/lib/apt/lists/* && \
+    localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
+RUN apt --fix-broken install
+WORKDIR /src

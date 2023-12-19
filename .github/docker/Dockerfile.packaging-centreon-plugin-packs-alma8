@@ -1,0 +1,12 @@
+ARG REGISTRY_URL
+
+FROM ${REGISTRY_URL}/almalinux:8
+
+RUN <<EOF
+
+dnf -y install git gettext rpm-build dos2unix python3 jq zstd
+dnf clean all
+
+EOF
+
+WORKDIR /src

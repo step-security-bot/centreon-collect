@@ -1,0 +1,42 @@
+ARG REGISTRY_URL
+
+FROM ${REGISTRY_URL}/debian:bullseye
+RUN apt-get -y update && \
+    apt-get -y install aptitude \
+    cmake\
+    curl \
+    debmake \
+    devscripts \
+    dh-make \
+    fakeroot \
+    g++ \
+    gcc \
+    gettext \
+    git \
+    git-buildpackage \
+    libgcrypt20-dev \
+    libgnutls28-dev \
+    liblua5.3-dev \
+    libmariadb3 \
+    libperl-dev \
+    librrd-dev \
+    lintian \
+    locales \
+    ninja-build \
+    ninja-build \
+    pbuilder \
+    php \
+    pkg-config \
+    python3 \
+    python3-pip \
+    quilt \
+    tar \
+    wget && \
+    rm -rf /var/lib/apt/lists/* && \
+    localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
+RUN mkdir -p /etc/apt/keyrings && \
+    wget -O - https://packages.adoptium.net/artifactory/api/gpg/key/public | tee /etc/apt/keyrings/adoptium.asc && \
+    echo "deb [signed-by=/etc/apt/keyrings/adoptium.asc] https://packages.adoptium.net/artifactory/deb $(awk -F= '/^VERSION_CODENAME/{print$2}' /etc/os-release) main" | tee /etc/apt/sources.list.d/adoptium.list && \
+    apt update && \
+    apt install -y temurin-8-jdk
+WORKDIR /src
