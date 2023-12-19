@@ -1,0 +1,32 @@
+ARG REGISTRY_URL
+ARG VERSION
+
+FROM ${REGISTRY_URL}/centreon-cloud-extensions-alma9:develop
+ARG VERSION
+
+RUN mkdir /tmp/rpms-centreon-cloud-business-extensions
+COPY *.rpm /tmp/rpms-centreon-cloud-business-extensions/
+
+COPY --chmod=755 ./.github/scripts/install-centreon-module.php /tmp/install-centreon-module.php
+COPY --chown=apache:apache ./.github/scripts/license/epp.license /etc/centreon/license.d/epp.license
+COPY --chown=apache:apache .github/scripts/license/bam.license /etc/centreon/license.d/bam.license
+COPY --chown=apache:apache .github/scripts/license/map.license /etc/centreon/license.d/map.license
+
+RUN bash -e <<EOF
+
+rm -rf /var/cache/centreon/symfony/*
+su - apache -s /bin/bash -c "/usr/share/centreon/bin/console cache:clear"
+
+dnf config-manager --add-repo https://centreon.jfrog.io/artifactory/rpm-business/1a97ff9985262bf3daf7a0919f9c59a6/${VERSION}/el9/centreon-business-${VERSION}.repo
+dnf config-manager --set-enabled 'centreon*'
+
+dnf install -y /tmp/rpms-centreon-cloud-business-extensions/*.rpm
+dnf clean all
+
+service mysql start
+su -c "/tmp/install-centreon-module.php -b /usr/share/centreon/bootstrap.php -m centreon-bam-server" -s /bin/bash apache
+su -c "/tmp/install-centreon-module.php -b /usr/share/centreon/bootstrap.php -m centreon-map4-web-client" -s /bin/bash apache
+su -c "/tmp/install-centreon-module.php -b /usr/share/centreon/bootstrap.php -m centreon-cloud-business-extensions" -s /bin/bash apache
+service mysql stop
+
+EOF
